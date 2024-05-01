@@ -11,5 +11,5 @@ class Environment:
     def read_from_file(image_filename):
         pass
 
-    def is_occupied(self):
-        pass
+    def is_occupied(self, coords: tuple[int, int]) -> bool:
+        return bool(self.occupancy_grid[*coords])
