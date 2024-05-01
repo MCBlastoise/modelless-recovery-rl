@@ -3,6 +3,7 @@ import time
 from tkinter import *
 from environment import Environment
 from agent import Agent
+import numpy as np
 
 class RobotVisualization:
     """
@@ -21,7 +22,7 @@ class RobotVisualization:
 
         # Initialize a drawing surface
         self.master = Tk()
-        self.w = Canvas(self.master, width=800, height=800)
+        self.w = Canvas(self.master, width=500, height=500)
         self.w.pack()
         self.master.update()
 
@@ -36,13 +37,13 @@ class RobotVisualization:
             for j in range(height):
                 x1, y1 = self._map_coords(i, j)
                 x2, y2 = self._map_coords(i + 1, j + 1)
-                if (i, j) not in self.tiles:
+                if not environment.is_occupied((i, j)):
                     self.tiles[(i, j)] = self.w.create_rectangle(
                         x1, y1, x2, y2, fill="black"
                     )
-                else: # not really sure what this is for
+                else:
                     self.tiles[(i, j)] = self.w.create_rectangle(
-                        x1, y1, x2, y2, fill="red"
+                        x1, y1, x2, y2, fill="white"
                     )
 
         # Draw gridlines - i think maybe we don't want to draw gridlines
@@ -131,12 +132,15 @@ class RobotVisualization:
 
 
 def test_robot_movement():
-    environment = Environment()
-    agents = environment.agents
+    occupancy_data = np.zeros((100,100))
+    occupancy_data[30, :40] = 1
+    occupancy_data[60, 60:] = 1
+    environment = Environment(occupancy_data)
+    # agents = environment.agents
     anim = RobotVisualization(environment)
-    while True:
-        environment.update_pos()
-        anim.update(environment)
+    # while True:
+    #     environment.update_pos()
+    #     anim.update(environment)
     anim.done()
 
 test_robot_movement()
