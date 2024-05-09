@@ -57,7 +57,7 @@ class Environment:
                 # restart simulation
 
                 print("Agent made a mistake, resetting to random position")
-                agent.update_position((random.randint(0, self.height), random.randint(0, self.width)))
+                agent.update_position((random.randint(0, self.height - 1), random.randint(0, self.width - 1)))
             else: # all good all safe
                 # update pdm to know that this spot and next spot are safe
                 agent.update_pdm(agent.pos, False)

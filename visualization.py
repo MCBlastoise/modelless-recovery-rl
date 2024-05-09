@@ -10,7 +10,7 @@ class RobotVisualization:
     Visualization of a Robot simulation.
     """
 
-    def __init__(self, environment, delay=0.2):
+    def __init__(self, environment, delay=0.00):
         "Initializes a visualization with the specified parameters."
         # Number of seconds to pause after each frame
         self.delay = delay
@@ -91,7 +91,6 @@ class RobotVisualization:
 
                 # figure out color
                 probability = environment.agents[0].get_probability_obstacle((i, j))
-                print(probability)
                 obstacle = environment.is_occupied((i, j))
                 if obstacle:
                     r = 255
@@ -104,7 +103,6 @@ class RobotVisualization:
                     b = 0
                 
                 rgb = r, g, b
-                print(r,g,b)
                 Hex = "#%02x%02x%02x" % rgb
                 self.tiles.add(self.w.create_rectangle(
                     x1, y1, x2, y2, fill="black", outline="black"
@@ -131,7 +129,8 @@ class RobotVisualization:
             self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="blue", outline="blue"))
 
         self.master.update()
-        # time.sleep(self.delay)
+        if self.delay != 0:
+            time.sleep(self.delay)
 
     def done(self):
         "Indicate that the animation is done so that we allow the user to close the window."
