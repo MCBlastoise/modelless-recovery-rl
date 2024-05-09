@@ -29,7 +29,7 @@ class RobotVisualization:
         # Draw a backing and lines
         x1, y1 = self._map_coords(0, 0)
         x2, y2 = self._map_coords(width, height)
-        self.w.create_rectangle(x1, y1, x2, y2, fill="white")
+        self.w.create_rectangle(x1, y1, x2, y2, fill="white", outline="white")
 
         # Draw gray squares for dusty tiles
         self.tiles = {}
@@ -39,11 +39,11 @@ class RobotVisualization:
                 x2, y2 = self._map_coords(i + 1, j + 1)
                 if not environment.is_occupied((i, j)):
                     self.tiles[(i, j)] = self.w.create_rectangle(
-                        x1, y1, x2, y2, fill="black"
+                        x1, y1, x2, y2, fill="black", outline="black"
                     )
                 else:
                     self.tiles[(i, j)] = self.w.create_rectangle(
-                        x1, y1, x2, y2, fill="white"
+                        x1, y1, x2, y2, fill="white", outline="white"
                     )
 
         self.robots = None
@@ -104,7 +104,7 @@ class RobotVisualization:
                 rgb = r, g, b
                 Hex = "#%02x%02x%02x" % rgb
                 self.tiles[(i, j)] = self.w.create_rectangle(
-                    x1, y1, x2, y2, fill=str(Hex)
+                    x1, y1, x2, y2, fill=str(Hex), outline=str(Hex)
                 )
 
         # print("Pre-robot deleting")
@@ -124,7 +124,7 @@ class RobotVisualization:
             x, y = robot.pos
             x1, y1 = self._map_coords(x - 0.6, y - 0.6)
             x2, y2 = self._map_coords(x + 0.6, y + 0.6)
-            self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="green"))
+            self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="blue", outline="blue"))
 
         self.master.update()
         # time.sleep(self.delay)
