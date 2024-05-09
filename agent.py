@@ -7,6 +7,7 @@ class Agent:
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = initial_pdm # numpy array
         self.pos = initial_coords
+        self.explored = np.zeros(self.pdm.shape)
     
     def get_next_coordinates(self):
         ROWS, COLS = self.pdm.shape
@@ -65,6 +66,9 @@ class Agent:
 
     def update_position(self, coords):
         self.pos = coords
+
+    def update_explored(self, coords):
+        self.explored[*coords] = 1
 
     def update_pdm(self, coords: tuple[int, int], obstacle: bool):
         delta = self.PDM_UPDATE_DELTA if obstacle else -self.PDM_UPDATE_DELTA
