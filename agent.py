@@ -21,6 +21,9 @@ class Agent:
         return next_coordinates
 
     def get_next_action(self):
+        """
+        returns action that agent should execute - either task policy or recovery policy
+        """
         possible_next_coords = self.get_next_coordinates()
         task_action = self.task_policy(possible_next_coords)
 
@@ -32,6 +35,9 @@ class Agent:
         return recovery_action
 
     def task_policy(self, possible_next_coords):
+        """
+        policy to poll for desired action
+        """
         step = possible_next_coords[0]
         for coord in possible_next_coords:
             if not self.explored[*coord]:
@@ -50,6 +56,7 @@ class Agent:
 
     def recovery_step(self, possible_next_coords) -> tuple:
         """
+        policy to poll for recovery action
         returns recovery action as a tuple, defined as the safest place to go from the current location
         """
         safest = None

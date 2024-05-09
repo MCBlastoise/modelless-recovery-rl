@@ -1,4 +1,5 @@
 import numpy as np
+from PIL import Image
 
 class Environment:
     def __init__(self, occupancy_data: str | np.ndarray, num_agents):
@@ -13,7 +14,10 @@ class Environment:
 
 
     def read_from_file(image_filename):
-        pass
+        img = Image.open(image_filename)
+        pixels = list(img.getdata())
+
+        
 
     def is_occupied(self, coords: tuple[int, int]) -> bool:
         return bool(self.occupancy_grid[*coords])
@@ -25,18 +29,12 @@ class Environment:
         """
 
         for agent in self.agents:
-            action = agent.next_action()
-            if not agent.is_safe(action): #too high risk
-                # update pdm with unsafe path
+            action = agent.get_next_action()
 
-                recovery_step = agent.recovery_step()
-                agent.x, agent.y = recovery_step
-
-            else:
-                if is_occupied(action):
-                    # tried to make an action that results in constraint violation
-                    # update pdm
-                    # restart simulation
-                else: # all good all safe
-                    # update pdm to know that spot was good
-                    agent.x, agent.y = action
+            if is_occupied(action):
+                # tried to make an action that results in constraint violation
+                # update pdm
+                # restart simulation
+            else: # all good all safe
+                # update pdm to know that spot was good
+                agent.x, agent.y = action
