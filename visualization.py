@@ -46,16 +46,6 @@ class RobotVisualization:
                         x1, y1, x2, y2, fill="white"
                     )
 
-        # Draw gridlines - i think maybe we don't want to draw gridlines
-        # for i in range(width + 1):
-        #     x1, y1 = self._map_coords(i, 0)
-        #     x2, y2 = self._map_coords(i, height)
-        #     self.w.create_line(x1, y1, x2, y2)
-        # for i in range(height + 1):
-        #     x1, y1 = self._map_coords(0, i)
-        #     x2, y2 = self._map_coords(width, i)
-        #     self.w.create_line(x1, y1, x2, y2)
-
         self.robots = None
         self.time = 0
 
@@ -126,16 +116,3 @@ class RobotVisualization:
     def done(self):
         "Indicate that the animation is done so that we allow the user to close the window."
         mainloop()
-
-
-def test_robot_movement():
-    occupancy_data = np.zeros((100,100))
-    occupancy_data[30, :40] = 1
-    occupancy_data[60, 60:] = 1
-    environment = Environment(occupancy_data)
-    # agents = environment.agents
-    anim = RobotVisualization(environment)
-    # while True:
-    #     environment.update_pos()
-    #     anim.update(environment)
-    anim.done()
