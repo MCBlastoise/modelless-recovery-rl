@@ -1,12 +1,10 @@
 import numpy as np
 
 class Agent:
-    DANGER_THRESHOLD = 0.2
-    
-    def __init__(self, initial_pdm, initial_x=0, initial_y=0):
+    def __init__(self, initial_pdm, initial_r=0, initial_c=0):
         self.pdm = initial_pdm # numpy array
-        self.x = initial_x
-        self.y = initial_y
+        self.r = initial_r
+        self.c = initial_c
         self.epsilon = 0.5
     
     def get_next_coordinates(self):
@@ -24,23 +22,31 @@ class Agent:
 
     def get_next_action(self):
         possible_next_coords = self.get_next_coordinates()
-
         task_action = self.task_policy(possible_next_coords)
 
         # Decide if safe, if not get recovery action
-
-        raise NotImplementedError
+        if self.is_safe(task_action):
+            return task_action
 
         recovery_action = self.recovery_step(possible_next_coords)
+        return recovery_action
 
     def task_policy(self, possible_next_coords):
-        raise NotImplementedError
+        step = possible_next_coords[0]
+        for coord in possible_next_coords:
+            if not self.explored[*coord]:
+                step = coord
+                break
+        return step
+
+    def get_probability_obstacle(self, coords: tuple[int, int]):
+        return self.pdm[*coords]
 
     def is_safe(self, coords: tuple[int, int]) -> bool:
         """
         returns boolean describing whether the given coord is above the epsilon safety value
         """
-        return self.pdm[i, j] > self.epsilon
+        return self.pdm[*coords] > self.epsilon
 
     def recovery_step(self, possible_next_coords) -> tuple:
         """
@@ -49,11 +55,11 @@ class Agent:
         safest = None
         safest_prob = 1
 
-        for next_y, next_x in possible_next_coords:
-            pnext_yob_violation = self.pdm[next_y, next_x]
-            if prob_violation < safest_prob or safest is None:
-                safest = (next_y, next_x)
-                safest_prob = prob_violation 
+        for next_coord in possible_next_coords:
+            pnext_yob_violation = self.pdm[*next_coord]
+            if pnext_yob_violation < safest_prob or safest is None:
+                safest = next_coord
+                safest_prob = pnext_yob_violation 
 
         return safest
 
