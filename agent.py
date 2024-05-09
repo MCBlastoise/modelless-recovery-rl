@@ -62,8 +62,8 @@ class Agent:
 
         return safest
 
-def update_position(self, coords):
-    self.pos = coords
+    def update_position(self, coords):
+        self.pos = coords
 
     def get_probability_obstacle(self, coords: tuple[int, int]):
         return self.pdm[*coords]
