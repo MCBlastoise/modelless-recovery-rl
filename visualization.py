@@ -10,7 +10,7 @@ class RobotVisualization:
     Visualization of a Robot simulation.
     """
 
-    def __init__(self, environment, delay=0.2):
+    def __init__(self, environment, delay=0.00):
         "Initializes a visualization with the specified parameters."
         # Number of seconds to pause after each frame
         self.delay = delay
@@ -127,7 +127,8 @@ class RobotVisualization:
             self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="blue", outline="blue"))
 
         self.master.update()
-        # time.sleep(self.delay)
+        if self.delay != 0:
+            time.sleep(self.delay)
 
     def done(self):
         "Indicate that the animation is done so that we allow the user to close the window."
