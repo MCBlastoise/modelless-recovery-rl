@@ -44,11 +44,15 @@ class Environment:
         for agent in self.agents:
             action = agent.get_next_action()
 
-            if is_occupied(action):
-                # tried to make an action that results in constraint violation
-                # update pdm
+            if is_occupied(action): # tried to do an action that results in constraint violation
+                # update pdm to mark current spot as more unsafe
+                agent.update_pdm(agent.pos, true)
+                # update pdm to mark next spot as more unsafe
+                agent.update_pdm(action, true)
                 # restart simulation
-                pass
+                agent.update_position((random.randint(0, self.height), random.randint(0, self.width)))
             else: # all good all safe
-                # update pdm to know that spot was good
-                agent.x, agent.y = action
+                # update pdm to know that this spot and next spot are safe
+                agent.update_pdm(agent.pos, false)
+                agent.update_pdm(action, false)
+                agent.update_position(action)
