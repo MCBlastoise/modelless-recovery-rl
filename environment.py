@@ -14,8 +14,9 @@ class Environment:
             self.occupancy_grid = occupancy_data
 
         self.agents = []
-        for i in range(num_agents):
-            self.agents.append(Agent(np.full((height,width), 0.3)))
+        for _ in range(num_agents):
+            agent = Agent(initial_pdm=np.full((height,width), 0.3), initial_coords=(random.randint(0, self.height), random.randint(0, self.width)))
+            self.agents.append(agent)
 
 
     def read_from_file(self, image_filename):
@@ -51,6 +52,8 @@ class Environment:
                 # update pdm to mark next spot as more unsafe
                 agent.update_pdm(action, True)
                 # restart simulation
+
+                print("Agent made a mistake, resetting to random position")
                 agent.update_position((random.randint(0, self.height), random.randint(0, self.width)))
             else: # all good all safe
                 # update pdm to know that this spot and next spot are safe
