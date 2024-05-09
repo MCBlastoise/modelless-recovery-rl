@@ -57,4 +57,4 @@ class Environment:
                 agent.update_pdm(agent.pos, False)
                 agent.update_pdm(action, False)
                 agent.update_position(action)
-                agent.update_explored(action)
+                # agent.update_explored(action)

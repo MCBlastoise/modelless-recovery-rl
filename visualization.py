@@ -116,14 +116,12 @@ class RobotVisualization:
         self.robots = []
         for robot in environment.agents:
             x, y = robot.pos
-            x1, y1 = self._map_coords(x - 0.08, y - 0.08)
-            x2, y2 = self._map_coords(x + 0.08, y + 0.08)
-            self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="black"))
-
-        # Update text
-        self.time += 1
+            x1, y1 = self._map_coords(x - 0.6, y - 0.6)
+            x2, y2 = self._map_coords(x + 0.6, y + 0.6)
+            self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="green"))
+        
         self.master.update()
-        time.sleep(self.delay)
+        # time.sleep(self.delay)
 
     def done(self):
         "Indicate that the animation is done so that we allow the user to close the window."

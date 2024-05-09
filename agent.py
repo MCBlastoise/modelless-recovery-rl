@@ -7,7 +7,9 @@ class Agent:
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = initial_pdm # numpy array
         self.pos = initial_coords
+
         self.explored = np.zeros(self.pdm.shape)
+        self.update_explored(initial_coords)
     
     def get_next_coordinates(self):
         ROWS, COLS = self.pdm.shape
@@ -28,13 +30,18 @@ class Agent:
         returns action that agent should execute - either task policy or recovery policy
         """
         possible_next_coords = self.get_next_coordinates()
+
+        # print("coord options", possible_next_coords)
         task_action = self.task_policy(possible_next_coords)
 
         # Decide if safe, if not get recovery action
         if self.is_safe(task_action):
+            # print("Took task action", task_action)
             return task_action
 
         recovery_action = self.recovery_step(possible_next_coords)
+        # print("Took recovery", recovery_action)
+
         return recovery_action
 
     def task_policy(self, possible_next_coords):
@@ -66,6 +73,7 @@ class Agent:
 
     def update_position(self, coords):
         self.pos = coords
+        self.update_explored(coords)
 
     def update_explored(self, coords):
         self.explored[*coords] = 1
@@ -81,4 +89,4 @@ class Agent:
         """
         returns boolean describing whether the given coord is above the epsilon safety value
         """
-        return self.pdm[*coords] > self.EPSILON
+        return self.pdm[*coords] < self.EPSILON
