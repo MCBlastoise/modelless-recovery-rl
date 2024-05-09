@@ -9,6 +9,9 @@ occupancy_data[60, 60:] = 1
 environment = Environment(occupancy_data, 1, 100, 100)
 anim = RobotVisualization(environment)
 while True:
+    # print("Before environment update")
     environment.update_pos()
+    # print("Environment update")
     anim.update(environment)
-anim.done()
+    # print("After animation update")
+# anim.done()

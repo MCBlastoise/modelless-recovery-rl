@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 class Agent:
     EPSILON = 0.5
@@ -49,10 +50,19 @@ class Agent:
         policy to poll for desired action
         """
         step = possible_next_coords[0]
+        unexplored_coords, explored_coords = [], []
+
         for coord in possible_next_coords:
             if not self.explored[*coord]:
-                step = coord
-                break
+                unexplored_coords.append(coord)
+            else:
+                explored_coords.append(coord)
+        
+        if unexplored_coords:
+            step = random.choice(unexplored_coords)
+        elif explored_coords:
+            step = random.choice(explored_coords)
+        
         return step
 
     def recovery_step(self, possible_next_coords) -> tuple:

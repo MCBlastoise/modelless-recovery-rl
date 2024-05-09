@@ -70,9 +70,17 @@ class RobotVisualization:
     def update(self, environment):
         "Redraws the visualization with the specified map and robot state."
 
+        # print("Pre-delete")
+
+        # print(len(self.w.find_all()))
+
+        # print(len(self.w))
+
         # Delete all unfurnished tiles
-        for tile in self.tiles.items():
-            self.w.delete(tile)
+        for _, obj in self.tiles.items():
+            self.w.delete(obj)
+
+        # print("Pre-draw")
 
         # Redraw tiles
         self.tiles = {}
@@ -97,11 +105,17 @@ class RobotVisualization:
                     x1, y1, x2, y2, fill=str(Hex)
                 )
 
+        # print("Pre-robot deleting")
+
+        # print(len(self.tiles))
         # Delete all existing robots.
         if self.robots:
             for robot in self.robots:
                 self.w.delete(robot)
                 self.master.update_idletasks()
+        
+        # print("Pre-robot draw")
+        
         # Draw new robots
         self.robots = []
         for robot in environment.agents:
@@ -109,7 +123,7 @@ class RobotVisualization:
             x1, y1 = self._map_coords(x - 0.6, y - 0.6)
             x2, y2 = self._map_coords(x + 0.6, y + 0.6)
             self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="green"))
-        
+
         self.master.update()
         # time.sleep(self.delay)
 
