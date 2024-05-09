@@ -52,5 +52,3 @@ class Environment:
             else: # all good all safe
                 # update pdm to know that spot was good
                 agent.x, agent.y = action
-
-e = Environment("handop.jpg", 1, 100, 100)
