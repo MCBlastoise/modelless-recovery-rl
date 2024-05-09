@@ -93,12 +93,14 @@ class RobotVisualization:
                 probability = environment.agents[0].get_probability_obstacle((i, j))
                 obstacle = environment.is_occupied((i, j))
                 if obstacle:
-                    color = 255
+                    r = 255
+                    g = 255
+                    b = 255
                 else:
-                    color = int(probability * 255) # TODO: this prob needs to be refined
-                r = color
-                g = color
-                b = color
+                    color = int(probability * 255)
+                    r = color
+                    g = 255 - color
+                    b = 0
                 rgb = r, g, b
                 Hex = "#%02x%02x%02x" % rgb
                 self.tiles[(i, j)] = self.w.create_rectangle(

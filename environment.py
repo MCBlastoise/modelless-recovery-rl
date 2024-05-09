@@ -15,7 +15,7 @@ class Environment:
 
         self.agents = []
         for i in range(num_agents):
-            self.agents.append(Agent(np.zeros((height,width))))
+            self.agents.append(Agent(np.full((height,width), 0.3)))
 
 
     def read_from_file(self, image_filename):
