@@ -1,11 +1,12 @@
 import numpy as np
 
 class Agent:
+    EPSILON = 0.5
+    
     def __init__(self, initial_pdm, initial_r=0, initial_c=0):
         self.pdm = initial_pdm # numpy array
         self.r = initial_r
         self.c = initial_c
-        self.epsilon = 0.5
     
     def get_next_coordinates(self):
         ROWS, COLS = self.pdm.shape
@@ -46,7 +47,7 @@ class Agent:
         """
         returns boolean describing whether the given coord is above the epsilon safety value
         """
-        return self.pdm[*coords] > self.epsilon
+        return self.pdm[*coords] > self.EPSILON
 
     def recovery_step(self, possible_next_coords) -> tuple:
         """
