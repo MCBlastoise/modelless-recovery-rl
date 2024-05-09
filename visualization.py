@@ -115,8 +115,7 @@ class RobotVisualization:
         # Draw new robots
         self.robots = []
         for robot in environment.agents:
-            pos = robot.get_position()
-            x, y = pos.get_x(), pos.get_y()
+            x, y = robot.get_position()
             x1, y1 = self._map_coords(x - 0.08, y - 0.08)
             x2, y2 = self._map_coords(x + 0.08, y + 0.08)
             self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="black"))
@@ -142,5 +141,3 @@ def test_robot_movement():
     #     environment.update_pos()
     #     anim.update(environment)
     anim.done()
-
-test_robot_movement()

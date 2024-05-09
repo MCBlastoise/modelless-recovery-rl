@@ -35,3 +35,6 @@ class Agent:
                             safest_prob = prob_violation 
 
         return safest
+
+    def get_position():
+        return self.x, self.y
