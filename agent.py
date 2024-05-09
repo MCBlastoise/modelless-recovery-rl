@@ -3,7 +3,7 @@ import random
 
 class Agent:
     EPSILON = 0.5
-    PDM_UPDATE_DELTA = 0.1
+    PDM_UPDATE_DELTA = 1.0
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = initial_pdm # numpy array
