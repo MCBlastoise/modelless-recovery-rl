@@ -37,11 +37,11 @@ class Agent:
 
         # Decide if safe, if not get recovery action
         if self.is_safe(task_action):
-            # print("Took task action", task_action)
+            print("Took task action", task_action)
             return task_action
 
         recovery_action = self.recovery_step(possible_next_coords)
-        # print("Took recovery", recovery_action)
+        print("Took recovery", recovery_action)
 
         return recovery_action
 
@@ -70,16 +70,19 @@ class Agent:
         policy to poll for recovery action
         returns recovery action as a tuple, defined as the safest place to go from the current location
         """
-        safest = None
+        safest = []
         safest_prob = 1
 
         for next_coord in possible_next_coords:
             pnext_yob_violation = self.pdm[*next_coord]
-            if pnext_yob_violation < safest_prob or safest is None:
-                safest = next_coord
-                safest_prob = pnext_yob_violation 
+            if pnext_yob_violation <= safest_prob or len(safest) == 0:
+                if pnext_yob_violation == safest_prob:
+                    safest.append(next_coord)
+                else:
+                    safest = [next_coord]
+                    safest_prob = pnext_yob_violation 
 
-        return safest
+        return random.choice(safest)
 
     def update_position(self, coords):
         self.pos = coords
