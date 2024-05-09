@@ -92,8 +92,8 @@ class RobotVisualization:
                 x2, y2 = self._map_coords(i + 1, j + 1)
 
                 # figure out color
-                probability = environment.agent.get_probability(i, j)
-                obstacle = environment.is_occupied(i, j)
+                probability = environment.agents[0].get_probability_obstacle((i, j))
+                obstacle = environment.is_occupied((i, j))
                 if obstacle:
                     color = 255
                 else:
@@ -115,7 +115,7 @@ class RobotVisualization:
         # Draw new robots
         self.robots = []
         for robot in environment.agents:
-            x, y = robot.get_position()
+            x, y = robot.pos
             x1, y1 = self._map_coords(x - 0.08, y - 0.08)
             x2, y2 = self._map_coords(x + 0.08, y + 0.08)
             self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="black"))

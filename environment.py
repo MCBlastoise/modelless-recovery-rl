@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image, ImageOps
 from agent import Agent
+import random
 
 class Environment:
     def __init__(self, occupancy_data: str | np.ndarray, num_agents, width, height):
@@ -44,16 +45,16 @@ class Environment:
         for agent in self.agents:
             action = agent.get_next_action()
 
-            if is_occupied(action): # tried to do an action that results in constraint violation
+            if self.is_occupied(action): # tried to do an action that results in constraint violation
                 # update pdm to mark current spot as more unsafe
-                agent.update_pdm(agent.pos, true)
+                agent.update_pdm(agent.pos, True)
                 # update pdm to mark next spot as more unsafe
-                agent.update_pdm(action, true)
+                agent.update_pdm(action, True)
                 # restart simulation
                 agent.update_position((random.randint(0, self.height), random.randint(0, self.width)))
             else: # all good all safe
                 # update pdm to know that this spot and next spot are safe
-                agent.update_pdm(agent.pos, false)
-                agent.update_pdm(action, false)
+                agent.update_pdm(agent.pos, False)
+                agent.update_pdm(action, False)
                 agent.update_position(action)
                 agent.update_explored(action)
