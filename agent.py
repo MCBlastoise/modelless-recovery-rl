@@ -2,6 +2,7 @@ import numpy as np
 
 class Agent:
     EPSILON = 0.5
+    PDM_UPDATE_DELTA = 0.1
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = initial_pdm # numpy array
@@ -64,6 +65,10 @@ class Agent:
 
     def update_position(self, coords):
         self.pos = coords
+
+    def update_pdm(self, coords: tuple[int, int], obstacle: bool):
+        delta = self.PDM_UPDATE_DELTA if obstacle else -self.PDM_UPDATE_DELTA
+        self.pdm[*coords] = max(min(self.pdm[*coords] + delta, 1.0), 0.0)
 
     def get_probability_obstacle(self, coords: tuple[int, int]):
         return self.pdm[*coords]
