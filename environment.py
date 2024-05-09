@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image, ImageOps
 from agent import Agent
 import random
+from scipy.ndimage import gaussian_filter
 
 class Environment:
     def __init__(self, occupancy_data: str | np.ndarray, num_agents, width, height):
@@ -15,7 +16,9 @@ class Environment:
 
         self.agents = []
         for _ in range(num_agents):
-            agent = Agent(initial_pdm=np.full((height,width), 0.3), initial_coords=(random.randint(0, self.height), random.randint(0, self.width)))
+            pdm = gaussian_filter(self.occupancy_grid.astype(float), sigma=1)*2
+            print(pdm)
+            agent = Agent(initial_pdm=pdm, initial_coords=(random.randint(0, self.height), random.randint(0, self.width)))
             self.agents.append(agent)
 
 

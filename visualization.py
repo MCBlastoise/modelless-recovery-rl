@@ -32,19 +32,19 @@ class RobotVisualization:
         self.w.create_rectangle(x1, y1, x2, y2, fill="white", outline="white")
 
         # Draw gray squares for dusty tiles
-        self.tiles = {}
+        self.tiles = set()
         for i in range(width):
             for j in range(height):
                 x1, y1 = self._map_coords(i, j)
                 x2, y2 = self._map_coords(i + 1, j + 1)
                 if not environment.is_occupied((i, j)):
-                    self.tiles[(i, j)] = self.w.create_rectangle(
+                    self.tiles.add(self.w.create_rectangle(
                         x1, y1, x2, y2, fill="black", outline="black"
-                    )
+                    ))
                 else:
-                    self.tiles[(i, j)] = self.w.create_rectangle(
+                    self.tiles.add(self.w.create_rectangle(
                         x1, y1, x2, y2, fill="white", outline="white"
-                    )
+                    ))
 
         self.robots = None
         self.time = 0
@@ -77,13 +77,13 @@ class RobotVisualization:
         # print(len(self.w))
 
         # Delete all unfurnished tiles
-        for _, obj in self.tiles.items():
+        for obj in self.tiles:
             self.w.delete(obj)
 
         # print("Pre-draw")
 
         # Redraw tiles
-        self.tiles = {}
+        self.tiles = set()
         for i in range(self.width):
             for j in range(self.height):
                 x1, y1 = self._map_coords(i, j)
@@ -91,6 +91,7 @@ class RobotVisualization:
 
                 # figure out color
                 probability = environment.agents[0].get_probability_obstacle((i, j))
+                print(probability)
                 obstacle = environment.is_occupied((i, j))
                 if obstacle:
                     r = 255
@@ -101,15 +102,18 @@ class RobotVisualization:
                     r = color
                     g = 255 - color
                     b = 0
+                
                 rgb = r, g, b
+                print(r,g,b)
                 Hex = "#%02x%02x%02x" % rgb
-                self.tiles[(i, j)] = self.w.create_rectangle(
+                self.tiles.add(self.w.create_rectangle(
+                    x1, y1, x2, y2, fill="black", outline="black"
+                ))
+                self.tiles.add(self.w.create_rectangle(
                     x1, y1, x2, y2, fill=str(Hex), outline=str(Hex)
-                )
+                ))
 
         # print("Pre-robot deleting")
-
-        # print(len(self.tiles))
         # Delete all existing robots.
         if self.robots:
             for robot in self.robots:
