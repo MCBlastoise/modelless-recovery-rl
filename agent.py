@@ -46,15 +46,6 @@ class Agent:
                 break
         return step
 
-    def get_probability_obstacle(self, coords: tuple[int, int]):
-        return self.pdm[*coords]
-
-    def is_safe(self, coords: tuple[int, int]) -> bool:
-        """
-        returns boolean describing whether the given coord is above the epsilon safety value
-        """
-        return self.pdm[*coords] > self.EPSILON
-
     def recovery_step(self, possible_next_coords) -> tuple:
         """
         policy to poll for recovery action
@@ -71,5 +62,11 @@ class Agent:
 
         return safest
 
-    def get_position():
-        return self.x, self.y
+    def get_probability_obstacle(self, coords: tuple[int, int]):
+        return self.pdm[*coords]
+
+    def is_safe(self, coords: tuple[int, int]) -> bool:
+        """
+        returns boolean describing whether the given coord is above the epsilon safety value
+        """
+        return self.pdm[*coords] > self.EPSILON
