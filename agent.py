@@ -3,18 +3,18 @@ import numpy as np
 class Agent:
     EPSILON = 0.5
     
-    def __init__(self, initial_pdm, initial_r=0, initial_c=0):
+    def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = initial_pdm # numpy array
-        self.r = initial_r
-        self.c = initial_c
+        self.pos = initial_coords
     
     def get_next_coordinates(self):
         ROWS, COLS = self.pdm.shape
         next_coordinates = []
 
+        r, c = self.pos
         for dr in (-1, 0, 1):
             for dc in (-1, 0, 1):
-                new_r, new_c = self.r + dr, self.c + dc
+                new_r, new_c = r + dr, c + dc
                 if (dr, dc) == (0, 0) or not (0 <= new_r < ROWS and 0 <= new_c < COLS):
                     continue
                 next_coordinates.append( (new_r, new_c) )
@@ -70,3 +70,6 @@ class Agent:
         returns boolean describing whether the given coord is above the epsilon safety value
         """
         return self.pdm[*coords] > self.EPSILON
+    
+    def update_position(self, coords):
+        self.pos = coords
