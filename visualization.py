@@ -100,6 +100,7 @@ class RobotVisualization:
         # Redraw tiles
         self.tiles = set()
         # first map
+
         for i in range(self.width):
             for j in range(self.height):
                 x1, y1 = self._map_coords(i, j)
@@ -167,12 +168,17 @@ class RobotVisualization:
         
         # Draw new robots
         self.robots = []
-        for robot in environment.agents:
+        for robot_idx, robot in enumerate(environment.agents):
             x, y = robot.pos
             x1, y1 = self._map_coords(x - 0.6, y - 0.6)
             x2, y2 = self._map_coords(x + 0.6, y + 0.6)
-            self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="blue", outline="blue"))
-            self.robots.append(self.w.create_oval(x1+500, y1, x2+500, y2, fill="gray", outline="gray"))
+            if robot_idx == 0:
+                self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="blue", outline="blue"))
+                self.robots.append(self.w.create_oval(x1+500, y1, x2+500, y2, fill="gray", outline="gray"))
+            else:
+                self.robots.append(self.w.create_oval(x1+500, y1, x2+500, y2, fill="blue", outline="blue"))
+                self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="gray", outline="gray"))
+            
 
         self.master.update()
         if self.delay != 0:
