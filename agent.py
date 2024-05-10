@@ -1,9 +1,12 @@
 import numpy as np
 import random
+from enum import Enum
+
+# PlanState = Enum('PlanState', ['Planning', 'NotPlanning'])
 
 class Agent:
-    EPSILON = 0.5
-    PDM_UPDATE_DELTA = 0.5
+    EPSILON = 0.7
+    PDM_UPDATE_DELTA = 0.2
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = initial_pdm # numpy array
@@ -11,20 +14,27 @@ class Agent:
 
         self.explored = np.zeros(self.pdm.shape)
         self.update_explored(initial_coords)
-    
-    def get_next_coordinates(self):
-        ROWS, COLS = self.pdm.shape
-        next_coordinates = []
 
-        r, c = self.pos
-        for dr in (-1, 0, 1):
-            for dc in (-1, 0, 1):
-                new_r, new_c = r + dr, c + dc
-                if (dr, dc) == (0, 0) or not (0 <= new_r < ROWS and 0 <= new_c < COLS):
-                    continue
-                next_coordinates.append( (new_r, new_c) )
-        
-        return next_coordinates
+        self.trajectory = None
+        # self.plan_state = False
+        trajectory = self.get_new_trajectory()
+        print(trajectory)
+
+    def get_new_trajectory(self):
+        queue = [ (self.pos,) ]
+        seen = set()
+        goal_func = lambda c: not self.explored[*c]
+        while queue:
+            path = queue.pop(0)
+            coords = path[-1]
+            neighbors = self.possible_steps(coords)
+            for neighbor in neighbors:
+                new_path = path + (neighbor,)
+                if goal_func(neighbor):
+                    return new_path
+                if neighbor not in seen:
+                    seen.add(neighbor)
+                    queue.append(new_path)
 
     def get_next_action(self):
         """
@@ -83,6 +93,23 @@ class Agent:
                     safest_prob = pnext_yob_violation 
 
         return random.choice(safest)
+
+    def possible_steps(self, pos):
+        ROWS, COLS = self.pdm.shape
+        next_coordinates = []
+
+        r, c = pos
+        for dr in (-1, 0, 1):
+            for dc in (-1, 0, 1):
+                new_r, new_c = r + dr, c + dc
+                if (dr, dc) == (0, 0) or not (0 <= new_r < ROWS and 0 <= new_c < COLS):
+                    continue
+                next_coordinates.append( (new_r, new_c) )
+        
+        return next_coordinates
+
+    def get_next_coordinates(self):
+        return self.possible_steps(self.pos)
 
     def update_position(self, coords):
         self.pos = coords
