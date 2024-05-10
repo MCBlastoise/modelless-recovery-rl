@@ -167,12 +167,20 @@ class RobotVisualization:
         
         # Draw new robots
         self.robots = []
+        i = 0
         for robot in environment.agents:
             x, y = robot.pos
             x1, y1 = self._map_coords(x - 0.6, y - 0.6)
             x2, y2 = self._map_coords(x + 0.6, y + 0.6)
-            self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="blue", outline="blue"))
-            self.robots.append(self.w.create_oval(x1+500, y1, x2+500, y2, fill="gray", outline="gray"))
+
+            if i%2 == 0:
+                self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="blue", outline="blue"))
+                self.robots.append(self.w.create_oval(x1+500, y1, x2+500, y2, fill="gray", outline="gray"))
+            else:
+                self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="gray", outline="gray"))
+                self.robots.append(self.w.create_oval(x1+500, y1, x2+500, y2, fill="blue", outline="blue"))
+            
+            i+=1
 
         self.master.update()
         if self.delay != 0:
