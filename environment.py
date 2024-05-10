@@ -5,7 +5,7 @@ import random
 from scipy.ndimage import gaussian_filter
 
 class Environment:
-    def __init__(self, occupancy_data: str | np.ndarray, num_agents, width, height):
+    def __init__(self, occupancy_data: str | np.ndarray, num_agents, width, height, completion_percentage):
         self.width = width
         self.height = height
 
@@ -21,6 +21,8 @@ class Environment:
 
         self.success = 0
         self.fail = 1
+
+        self.completion_percentage = completion_percentage
 
 
     def get_random_position(self):
@@ -53,32 +55,18 @@ class Environment:
         for i in range(len(self.agents)):
             agent = self.agents[i]
 
-            if self.fully_explored(agent):
-                self.agents.remove(agent)
-                continue
-
             action = agent.get_next_action()
 
             if self.is_occupied(action): # tried to do an action that results in constraint violation
-                # update pdm to mark current spot as more unsafe
-                # agent.update_pdm(agent.pos, True)
-                # update pdm to mark next spot as more unsafe
-                # agent.update_pdm(action, True)
-                # restart simulation
-
                 self.fail += 1
                 # print("Agent made a mistake, resetting to random position")
                 agent.reset_for_failure(self.get_random_position())
             else: # all good all safe
-                # update pdm to know that this spot and next spot are safe
-                # agent.update_pdm(agent.pos, False)
-                # agent.update_pdm(action, False)
                 agent.successful_move(action)
                 # agent.update_explored(action)
                 self.success += 1
 
-
     def fully_explored(self, agent):
         xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))
-        num_zeros = xor_result.size - np.count_nonzero(xor_result)
-        return num_zeros == 0
+        visited = np.count_nonzero(xor_result)
+        return visited > self.completion_percentage*self.occupancy_grid.size 
