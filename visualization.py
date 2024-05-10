@@ -109,7 +109,7 @@ class RobotVisualization:
                 # figure out color
                 probability = environment.agents[0].get_probability_obstacle((i, j))
                 obstacle = environment.is_occupied((i, j))
-                if obstacle and probability < 0.5:
+                if obstacle:
                     r = 255
                     g = 255
                     b = 255

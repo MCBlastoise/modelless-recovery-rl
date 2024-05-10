@@ -20,7 +20,7 @@ class Environment:
             self.agents.append(agent)
 
         self.success = 0
-        self.fail = 0
+        self.fail = 1
 
 
     def get_random_position(self):
@@ -81,9 +81,4 @@ class Environment:
     def fully_explored(self, agent):
         xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))
         num_zeros = xor_result.size - np.count_nonzero(xor_result)
-
-        print(num_zeros)
-        print(agent.explored)
-        print(self.occupancy_grid)
-        print(xor_result)
         return num_zeros == 0
