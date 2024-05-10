@@ -10,7 +10,7 @@ class Agent:
     PATH_DANGER_WINDOW = 4
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
-        self.pdm = initial_pdm # numpy array
+        self.pdm = np.copy(initial_pdm) # numpy array
         self.pos = initial_coords
 
         self.explored = np.zeros(self.pdm.shape)

@@ -47,8 +47,7 @@ class Environment:
         update every agent's pdm to reflect what they encounter in this step
         """
 
-        for i in range(len(self.agents)):
-            agent = self.agents[i]
+        for agent in self.agents:
             action = agent.get_next_action()
 
             if self.is_occupied(action): # tried to do an action that results in constraint violation
