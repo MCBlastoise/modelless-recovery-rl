@@ -16,12 +16,15 @@ class Environment:
 
         self.agents = []
         for _ in range(num_agents):
-            agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), initial_coords=(random.randint(0, self.height-1), random.randint(0, self.width-1)))
+            agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), initial_coords=self.get_random_position())
             self.agents.append(agent)
 
         self.success = 0
         self.fail = 0
 
+
+    def get_random_position(self):
+        return (random.randint(0, self.height-1), random.randint(0, self.width-1))
 
     def read_from_file(self, image_filename):
         img = ImageOps.grayscale(Image.open(image_filename))
@@ -58,19 +61,19 @@ class Environment:
 
             if self.is_occupied(action): # tried to do an action that results in constraint violation
                 # update pdm to mark current spot as more unsafe
-                agent.update_pdm(agent.pos, True)
+                # agent.update_pdm(agent.pos, True)
                 # update pdm to mark next spot as more unsafe
-                agent.update_pdm(action, True)
+                # agent.update_pdm(action, True)
                 # restart simulation
 
-                print("Agent made a mistake, resetting to random position")
                 self.fail += 1
-                agent.update_position((random.randint(0, self.height - 1), random.randint(0, self.width - 1)))
+                # print("Agent made a mistake, resetting to random position")
+                agent.reset_for_failure(self.get_random_position())
             else: # all good all safe
                 # update pdm to know that this spot and next spot are safe
-                agent.update_pdm(agent.pos, False)
-                agent.update_pdm(action, False)
-                agent.update_position(action)
+                # agent.update_pdm(agent.pos, False)
+                # agent.update_pdm(action, False)
+                agent.successful_move(action)
                 # agent.update_explored(action)
                 self.success += 1
 
@@ -78,6 +81,7 @@ class Environment:
     def fully_explored(self, agent):
         xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))
         num_zeros = xor_result.size - np.count_nonzero(xor_result)
+
         print(num_zeros)
         print(agent.explored)
         print(self.occupancy_grid)
