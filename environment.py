@@ -19,6 +19,9 @@ class Environment:
             agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), initial_coords=(random.randint(0, self.height-1), random.randint(0, self.width-1)))
             self.agents.append(agent)
 
+        self.success = 0
+        self.fail = 0
+
 
     def read_from_file(self, image_filename):
         img = ImageOps.grayscale(Image.open(image_filename))
@@ -46,6 +49,11 @@ class Environment:
 
         for i in range(len(self.agents)):
             agent = self.agents[i]
+
+            if self.fully_explored(agent):
+                self.agents.remove(agent)
+                continue
+
             action = agent.get_next_action()
 
             if self.is_occupied(action): # tried to do an action that results in constraint violation
@@ -56,6 +64,7 @@ class Environment:
                 # restart simulation
 
                 print("Agent made a mistake, resetting to random position")
+                self.fail += 1
                 agent.update_position((random.randint(0, self.height - 1), random.randint(0, self.width - 1)))
             else: # all good all safe
                 # update pdm to know that this spot and next spot are safe
@@ -63,12 +72,14 @@ class Environment:
                 agent.update_pdm(action, False)
                 agent.update_position(action)
                 # agent.update_explored(action)
+                self.success += 1
 
-            if self.fully_explored(agent):
-                self.agents.remove(agent)
 
     def fully_explored(self, agent):
         xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))
         num_zeros = xor_result.size - np.count_nonzero(xor_result)
         print(num_zeros)
+        print(agent.explored)
+        print(self.occupancy_grid)
+        print(xor_result)
         return num_zeros == 0
