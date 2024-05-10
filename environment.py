@@ -16,9 +16,7 @@ class Environment:
 
         self.agents = []
         for _ in range(num_agents):
-            pdm = gaussian_filter(self.occupancy_grid.astype(float), sigma=1)*2
-            print(pdm)
-            agent = Agent(initial_pdm=pdm, initial_coords=(random.randint(0, self.height), random.randint(0, self.width)))
+            agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), initial_coords=(random.randint(0, self.height-1), random.randint(0, self.width-1)))
             self.agents.append(agent)
 
 
@@ -46,7 +44,8 @@ class Environment:
         update every agent's pdm to reflect what they encounter in this step
         """
 
-        for agent in self.agents:
+        for i in range(len(self.agents)):
+            agent = self.agents[i]
             action = agent.get_next_action()
 
             if self.is_occupied(action): # tried to do an action that results in constraint violation
@@ -64,3 +63,12 @@ class Environment:
                 agent.update_pdm(action, False)
                 agent.update_position(action)
                 # agent.update_explored(action)
+
+            if self.fully_explored(agent):
+                self.agents.remove(agent)
+
+    def fully_explored(self, agent):
+        xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))
+        num_zeros = xor_result.size - np.count_nonzero(xor_result)
+        print(num_zeros)
+        return num_zeros == 0

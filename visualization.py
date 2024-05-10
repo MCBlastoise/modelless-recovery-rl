@@ -22,7 +22,7 @@ class RobotVisualization:
 
         # Initialize a drawing surface
         self.master = Tk()
-        self.w = Canvas(self.master, width=500, height=500)
+        self.w = Canvas(self.master, width=1000, height=500)
         self.w.pack()
         self.master.update()
 
@@ -31,7 +31,7 @@ class RobotVisualization:
         x2, y2 = self._map_coords(width, height)
         self.w.create_rectangle(x1, y1, x2, y2, fill="white", outline="white")
 
-        # Draw gray squares for dusty tiles
+        # Draw black/white tiles 
         self.tiles = set()
         for i in range(width):
             for j in range(height):
@@ -44,6 +44,21 @@ class RobotVisualization:
                 else:
                     self.tiles.add(self.w.create_rectangle(
                         x1, y1, x2, y2, fill="white", outline="white"
+                    ))
+
+        # Draw black/white tiles 
+        self.tiles = set()
+        for i in range(width):
+            for j in range(height):
+                x1, y1 = self._map_coords(i, j)
+                x2, y2 = self._map_coords(i + 1, j + 1)
+                if not environment.is_occupied((i, j)):
+                    self.tiles.add(self.w.create_rectangle(
+                        x1 + 500, y1, x2 + 500, y2, fill="black", outline="black"
+                    ))
+                else:
+                    self.tiles.add(self.w.create_rectangle(
+                        x1 + 500, y1, x2 + 500, y2, fill="white", outline="white"
                     ))
 
         self.robots = None
@@ -84,6 +99,7 @@ class RobotVisualization:
 
         # Redraw tiles
         self.tiles = set()
+        # first map
         for i in range(self.width):
             for j in range(self.height):
                 x1, y1 = self._map_coords(i, j)
@@ -111,6 +127,35 @@ class RobotVisualization:
                     x1, y1, x2, y2, fill=str(Hex), outline=str(Hex)
                 ))
 
+        #second map
+        if len(environment.agents) > 1:
+            for i in range(self.width):
+                for j in range(self.height):
+                    x1, y1 = self._map_coords(i, j)
+                    x2, y2 = self._map_coords(i + 1, j + 1)
+
+                    # figure out color
+                    probability = environment.agents[1].get_probability_obstacle((i, j))
+                    obstacle = environment.is_occupied((i, j))
+                    if obstacle:
+                        r = 255
+                        g = 255
+                        b = 255
+                    else:
+                        color = int(probability * 255)
+                        r = color
+                        g = 255 - color
+                        b = 0
+                    
+                    rgb = r, g, b
+                    Hex = "#%02x%02x%02x" % rgb
+                    self.tiles.add(self.w.create_rectangle(
+                        x1+500, y1, x2+500, y2, fill="black", outline="black"
+                    ))
+                    self.tiles.add(self.w.create_rectangle(
+                        x1+500, y1, x2+500, y2, fill=str(Hex), outline=str(Hex)
+                    ))
+
         # print("Pre-robot deleting")
         # Delete all existing robots.
         if self.robots:
@@ -127,6 +172,7 @@ class RobotVisualization:
             x1, y1 = self._map_coords(x - 0.6, y - 0.6)
             x2, y2 = self._map_coords(x + 0.6, y + 0.6)
             self.robots.append(self.w.create_oval(x1, y1, x2, y2, fill="blue", outline="blue"))
+            self.robots.append(self.w.create_oval(x1+500, y1, x2+500, y2, fill="gray", outline="gray"))
 
         self.master.update()
         if self.delay != 0:
