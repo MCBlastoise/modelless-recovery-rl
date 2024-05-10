@@ -57,7 +57,7 @@ class Environment:
                 # agent.update_pdm(action, True)
                 # restart simulation
 
-                print("Agent made a mistake, resetting to random position")
+                # print("Agent made a mistake, resetting to random position")
                 agent.reset_for_failure(self.get_random_position())
             else: # all good all safe
                 # update pdm to know that this spot and next spot are safe
