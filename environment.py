@@ -19,6 +19,10 @@ class Environment:
             agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), initial_coords=self.get_random_position())
             self.agents.append(agent)
 
+        for ix, agent in enumerate(self.agents):
+            other_agents = self.agents[:ix] + self.agents[ix + 1:]
+            agent.share_other_agents(other_agents)
+
         self.success = 0
         self.fail = 1
 
@@ -52,19 +56,23 @@ class Environment:
         update every agent's pdm to reflect what they encounter in this step
         """
 
-        for i in range(len(self.agents)):
-            agent = self.agents[i]
-
+        for agent in self.agents:
             action = agent.get_next_action()
 
             if self.is_occupied(action): # tried to do an action that results in constraint violation
                 self.fail += 1
                 # print("Agent made a mistake, resetting to random position")
-                agent.reset_for_failure(self.get_random_position())
+                agent.take_step(coords=self.get_random_position(), success=False)
+                # agent.reset_for_failure()
             else: # all good all safe
-                agent.successful_move(action)
+                agent.take_step(coords=action, success=True)
+                # agent.successful_move(action)
                 # agent.update_explored(action)
                 self.success += 1
+            
+            # print(agent.other_agents)
+        
+
 
     def fully_explored(self, agent):
         xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))

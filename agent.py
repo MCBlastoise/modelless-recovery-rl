@@ -8,6 +8,8 @@ class Agent:
     PDM_NEG_DELTA = -0.1
     PATH_DANGER_WINDOW = 4
     DANGER_RADIUS = 2
+
+    COMMUNICATION_THRESHOLD = 7
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = np.copy(initial_pdm) # numpy array
@@ -20,6 +22,30 @@ class Agent:
         self.trajectory_step = None
 
         self.previous_positions = [None] * self.PATH_DANGER_WINDOW
+
+        self.other_agents = []
+
+    def share_other_agents(self, other_agents):
+        self.other_agents = other_agents
+
+    def other_agent_access(self, other_agent):
+        my_pos, other_pos = self.pos, other_agent.pos
+        x1, y1 = my_pos
+        x2, y2 = other_pos
+        distance = ((y2 - y1) ** 2 + (x2 - x1) ** 2) ** (1/2)
+
+        if distance <= self.COMMUNICATION_THRESHOLD:
+            return other_agent.pos
+        else:
+            return None
+    
+    def get_available_others(self):
+        other_agents_data = []
+        for other_agent in self.other_agents:
+            pos = self.other_agent_access(other_agent)
+            if pos is not None:
+                other_agents_data.append(pos)
+        return other_agents_data
 
     def get_new_trajectory(self):
         queue = [ (self.pos,) ]
@@ -105,14 +131,15 @@ class Agent:
                 next_coordinates.append( (new_r, new_c) )
         
         # if random.random() > 0.85:
-        random.shuffle(next_coordinates)
-        return next_coordinates
+        # random.shuffle(next_coordinates)
+        danger_sorted_coords = sorted(next_coordinates, key=lambda c: self.pdm[*c])
+        return danger_sorted_coords
 
     def get_next_coordinates(self):
         return self.possible_steps(self.pos)
 
-    def update_danger_zone(self):
-        self.update_zone_with_danger()
+    def update_current_danger(self):
+        self.update_zone_with_danger(self.pos)
         self.update_path_with_danger()
 
     def update_path_with_danger(self):
@@ -122,9 +149,9 @@ class Agent:
             scale_factor = 1 / (ix ** 2)
             self.update_pdm(coord, obstacle=True, scale_factor=scale_factor)
     
-    def update_zone_with_danger(self):
+    def update_zone_with_danger(self, coords, initial_scale_factor=1):
         ROWS, COLS = self.pdm.shape
-        r, c = self.pos
+        r, c = coords
 
         danger_zone_coords = []
         for dr in range(-self.DANGER_RADIUS, self.DANGER_RADIUS + 1):
@@ -136,15 +163,29 @@ class Agent:
         for danger_coord in danger_zone_coords:
             (x1, y1), (x2, y2) = self.pos, danger_coord
             distance = ((y2 - y1) ** 2 + (x2 - x1) ** 2) ** (1/2)
-            scale_factor = 1 / (distance ** 2) if distance != 0 else 1
+            scale_factor = initial_scale_factor * (1 / (distance ** 2) if distance != 0 else 1)
             self.update_pdm(danger_coord, obstacle=True, scale_factor=scale_factor)
 
     def invalidate_trajectory(self):
         self.trajectory = None
         self.trajectory_step = None
 
+    def take_step(self, coords, success: bool):
+        if success:
+            self.successful_move(coords)
+        else:
+            self.reset_for_failure(coords)
+        
+        self.update_others_danger()
+        # print(communicable_poses)
+
+    def update_others_danger(self):
+        communicable_poses = self.get_available_others()
+        for other_pos in communicable_poses:
+            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.7)
+
     def reset_for_failure(self, coords):
-        self.update_danger_zone()
+        self.update_current_danger()
         self.trajectory, self.trajectory_step = None, None
         self.update_position(coords)
 
@@ -179,4 +220,12 @@ class Agent:
         """
         returns boolean describing whether the given coord is above the epsilon safety value
         """
-        return self.pdm[*coords] < self.EPSILON
+
+        safety = self.pdm[*coords]
+        if safety < self.EPSILON:
+            return True
+        else:
+            UNSAFE_CAP = 0.95
+            capped_safety = min(safety, UNSAFE_CAP)
+            random_val = random.random()
+            return capped_safety < random_val
