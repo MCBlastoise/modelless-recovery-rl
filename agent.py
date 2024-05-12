@@ -198,7 +198,7 @@ class Agent:
         for other_pos, other_pdm, other_explored in communicable_poses:
             self.incorporate_other_pdm(other_pdm)
             self.incorporate_other_explored(other_explored)
-            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.75)
+            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.65)
 
     def reset_for_failure(self, coords):
         self.update_current_danger()
