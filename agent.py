@@ -257,8 +257,9 @@ class Agent:
         ROWS, COLS = self.pdm.shape
         for row in range(ROWS):
             for col in range(COLS):
+                INCORPORATION_FRACTION = 0.25
                 my_prob, other_prob = self.pdm[row, col], other_pdm[row, col]
-                new_prob = max(my_prob, other_prob)
+                new_prob = other_prob * INCORPORATION_FRACTION + my_prob * (1 - INCORPORATION_FRACTION)
                 self.pdm[row, col] = new_prob
     
     def incorporate_other_explored(self, other_explored):
