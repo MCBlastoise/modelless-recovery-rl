@@ -109,7 +109,7 @@ class Agent:
 
     def get_random_action(self, possible_next_coords):
         danger_sorted = sorted(possible_next_coords, key=lambda c: self.pdm[*c])
-        safer_choices = danger_sorted[:len(danger_sorted) / 2]
+        safer_choices = danger_sorted[:len(danger_sorted) // 2]
         return random.choice(safer_choices)
 
     def recovery_step(self, possible_next_coords) -> tuple:

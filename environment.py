@@ -66,10 +66,18 @@ class Environment:
         update every agent's pdm to reflect what they encounter in this step
         """
 
-        for agent in self.agents:
-            action = agent.get_next_action()
+        agent_actions = [agent.get_next_action() for agent in self.agents]
+        for ix, (agent, action) in enumerate(zip(self.agents, agent_actions)):
+            # action = agent.get_next_action()
 
-            if self.is_occupied(action): # tried to do an action that results in constraint violation
+            is_collision = False
+            for jx, other_action in enumerate(agent_actions):
+                if ix == jx:
+                    continue
+                if action == other_action:
+                    is_collision = True
+
+            if is_collision or self.is_occupied(action): # tried to do an action that results in constraint violation
                 self.fail += 1
                 # print("Agent made a mistake, resetting to random position")
                 agent.take_step(coords=self.get_random_position(), success=False)
