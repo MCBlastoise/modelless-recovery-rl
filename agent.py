@@ -5,13 +5,13 @@ from enum import Enum
 class Agent:
     EPSILON = 0.7
     PDM_POS_DELTA = 0.3
-    PDM_NEG_DELTA = -0.1
+    PDM_NEG_DELTA = -0.15
     PATH_DANGER_WINDOW = 4
     DANGER_RADIUS = 2
 
-    COMMUNICATION_THRESHOLD = 7
+    COMMUNICATION_THRESHOLD = 9
     
-    def __init__(self, initial_pdm, goal_percentage, initial_coords = (0, 0)):
+    def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = np.copy(initial_pdm) # numpy array
         self.pos = initial_coords
 
@@ -198,7 +198,7 @@ class Agent:
         for other_pos, other_pdm, other_explored in communicable_poses:
             self.incorporate_other_pdm(other_pdm)
             self.incorporate_other_explored(other_explored)
-            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.65)
+            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.6)
 
     def reset_for_failure(self, coords):
         self.update_current_danger()
@@ -247,11 +247,6 @@ class Agent:
             capped_safety = min(scaled_safety, UNSAFE_CAP)
             random_val = random.random()
             return capped_safety < random_val
-    
-    def get_fraction_explored(self):
-        frac = np.sum(self.explored) / self.explored.size
-        print(self, frac)
-        return frac
     
     def incorporate_other_pdm(self, other_pdm):
         ROWS, COLS = self.pdm.shape

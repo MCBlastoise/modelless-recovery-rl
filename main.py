@@ -11,7 +11,7 @@ environment = Environment(
     num_agents=2,
     width=30,
     height=30,
-    completion_percentage=0.9
+    completion_percentage=0.85
 )
 anim = RobotVisualization(environment)
 while True:

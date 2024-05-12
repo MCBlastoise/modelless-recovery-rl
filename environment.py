@@ -16,7 +16,7 @@ class Environment:
 
         self.agents = []
         for _ in range(num_agents):
-            agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), goal_percentage=completion_percentage, initial_coords=self.get_random_position())
+            agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), initial_coords=self.get_random_position())
             self.agents.append(agent)
 
         for ix, agent in enumerate(self.agents):
@@ -40,7 +40,11 @@ class Environment:
         return self.cohesive_map
 
     def get_random_position(self):
-        return (random.randint(0, self.height-1), random.randint(0, self.width-1))
+        while True:
+            pos = (random.randint(0, self.height-1), random.randint(0, self.width-1))
+            if self.is_occupied(pos):
+                continue
+            return pos
 
     def read_from_file(self, image_filename):
         img = ImageOps.grayscale(Image.open(image_filename))
