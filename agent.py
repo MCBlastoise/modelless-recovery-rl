@@ -258,8 +258,8 @@ class Agent:
         for row in range(ROWS):
             for col in range(COLS):
                 my_prob, other_prob = self.pdm[row, col], other_pdm[row, col]
-                average_prob = (my_prob + other_prob) / 2
-                self.pdm[row, col] = average_prob
+                new_prob = max(my_prob, other_prob)
+                self.pdm[row, col] = new_prob
     
     def incorporate_other_explored(self, other_explored):
         ROWS, COLS = self.explored.shape
