@@ -74,16 +74,16 @@ class Environment:
         for ix, (agent, action) in enumerate(zip(self.agents, agent_actions)):
             # action = agent.get_next_action()
 
-            is_collision = False
-            for jx, other_action in enumerate(agent_actions):
-                if ix == jx:
-                    continue
-                if action == other_action:
-                    is_collision = True
+            # is_collision = False
+            # for jx, other_action in enumerate(agent_actions):
+            #     if ix == jx:
+            #         continue
+            #     if action == other_action:
+            #         is_collision = True
 
-            if is_collision or self.is_occupied(action): # tried to do an action that results in constraint violation
+            if self.is_occupied(action): # tried to do an action that results in constraint violation
                 self.fail += 1
-                # print("Agent made a mistake, resetting to random position")
+                print("Agent made a mistake, resetting to random position")
                 agent.take_step(coords=self.get_random_position(), success=False)
                 # agent.reset_for_failure()
             else: # all good all safe
