@@ -41,7 +41,7 @@ class Agent:
         distance = ((y2 - y1) ** 2 + (x2 - x1) ** 2) ** (1/2)
 
         if distance <= self.COMMUNICATION_THRESHOLD:
-            return other_agent.pos
+            return (other_agent.pos, other_agent.pdm)
         else:
             return None
     
@@ -195,7 +195,8 @@ class Agent:
 
     def update_others_danger(self):
         communicable_poses = self.get_available_others()
-        for other_pos in communicable_poses:
+        for other_pos, other_pdm in communicable_poses:
+            self.incorporate_other_pdm(other_pdm)
             self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.75)
 
     def reset_for_failure(self, coords):
@@ -250,3 +251,11 @@ class Agent:
         frac = np.sum(self.explored) / self.explored.size
         print(self, frac)
         return frac
+    
+    def incorporate_other_pdm(self, other_pdm):
+        ROWS, COLS = self.pdm.shape
+        for row in range(ROWS):
+            for col in range(COLS):
+                my_prob, other_prob = self.pdm[row, col], other_pdm[row, col]
+                average_prob = (my_prob + other_prob) / 2
+                self.pdm[row, col] = average_prob
