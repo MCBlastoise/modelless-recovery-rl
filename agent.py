@@ -123,7 +123,9 @@ class Agent:
         for coord in possible_next_coords:
             if self.is_safe(coord):
                 safe_actions.append(coord)
-        return random.choice(safe_actions)
+        if len(safe_actions) > 0:
+            return random.choice(safe_actions)
+        return min(possible_next_coords, key=lambda x: self.pdm[*x])
 
     def recovery_step(self, possible_next_coords) -> tuple:
         """

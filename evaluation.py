@@ -10,10 +10,10 @@ occupancy_data[20:25, :10] = 1
 occupancy_data[5:10, 20:] = 1
 # occupancy_data[:10, 5:15] = 1
 # occupancy_data[20:, 15:25] = 1
-environment = Environment("manyobstacles.png", 1, 30, 30, 0.75)
+environment = Environment("manyobstacles.png", 2, 30, 30, 0.75)
 anim = RobotVisualization(environment)
 ratios = []
-for i in range(5000):
+for i in range(3000):
 
     # print("Before environment update")
     environment.update_pos()
@@ -33,6 +33,6 @@ print(ratios)
 plt.plot(x_vals, ratios)
 plt.xlabel('Iterations')
 plt.ylabel('Ratio of Successes to Failures')
-plt.title('No Recovery RL on 30x30')
+plt.title('Multiagent Recovery RL on 30x30')
 plt.show()
 # anim.done()
