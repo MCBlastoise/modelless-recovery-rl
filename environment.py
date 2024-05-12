@@ -16,7 +16,7 @@ class Environment:
 
         self.agents = []
         for _ in range(num_agents):
-            agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), initial_coords=self.get_random_position())
+            agent = Agent(initial_pdm=np.full((self.height,self.width), 0.4), goal_percentage=completion_percentage, initial_coords=self.get_random_position())
             self.agents.append(agent)
 
         for ix, agent in enumerate(self.agents):
@@ -28,6 +28,16 @@ class Environment:
 
         self.completion_percentage = completion_percentage
 
+    def get_cohesive_explored_map(self):
+        map_shape = (self.height, self.width)
+        self.cohesive_map = np.zeros(shape=map_shape)
+        for row in range(self.height):
+            for col in range(self.width):
+                for agent in self.agents:
+                    if agent.explored[row, col]:
+                        self.cohesive_map[row, col] = 1
+                        break
+        return self.cohesive_map
 
     def get_random_position(self):
         return (random.randint(0, self.height-1), random.randint(0, self.width-1))
@@ -71,10 +81,19 @@ class Environment:
                 self.success += 1
             
             # print(agent.other_agents)
+        cohesive_map = self.get_cohesive_explored_map()
+        if not self.explored_enough(cohesive_map):
+            return
         
+        for agent in self.agents:
+            agent.inform_goal_completed()
+        
+    def explored_enough(self, cohesive_map):
+        explored_frac = np.sum(cohesive_map) / cohesive_map.size
+        print(explored_frac)
+        return explored_frac >= self.completion_percentage
 
-
-    def fully_explored(self, agent):
-        xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))
-        visited = np.count_nonzero(xor_result)
-        return visited > self.completion_percentage*self.occupancy_grid.size 
+    # def fully_explored(self, agent):
+    #     xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))
+    #     visited = np.count_nonzero(xor_result)
+    #     return visited > self.completion_percentage*self.occupancy_grid.size 

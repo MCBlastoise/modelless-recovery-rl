@@ -11,9 +11,11 @@ class Agent:
 
     COMMUNICATION_THRESHOLD = 7
     
-    def __init__(self, initial_pdm, initial_coords = (0, 0)):
+    def __init__(self, initial_pdm, goal_percentage, initial_coords = (0, 0)):
         self.pdm = np.copy(initial_pdm) # numpy array
         self.pos = initial_coords
+
+        self.goal_satisfied = False # Flips when environment informs agent that they have explored enough
 
         self.explored = np.zeros(self.pdm.shape)
         self.update_explored(initial_coords)
@@ -24,6 +26,10 @@ class Agent:
         self.previous_positions = [None] * self.PATH_DANGER_WINDOW
 
         self.other_agents = []
+
+    def inform_goal_completed(self):
+        print("goal reached")
+        self.goal_satisfied = True
 
     def share_other_agents(self, other_agents):
         self.other_agents = other_agents
@@ -70,34 +76,41 @@ class Agent:
         returns action that agent should execute - either task policy or recovery policy
         """
 
+        possible_next_coords = self.get_next_coordinates()
+
         # Decide if safe
         if self.is_safe(self.pos):
-            task_action = self.task_policy()
-            self.trajectory_step += 1
+            task_action = self.task_policy(possible_next_coords)
+            self.trajectory_step = self.trajectory_step + 1 if self.trajectory_step is not None else self.trajectory_step
             return task_action
 
         # If not, invalidate trajectory and take recovery action
 
         # Failure, so invalidate trajectory
         self.invalidate_trajectory()
-
-        possible_next_coords = self.get_next_coordinates()
         recovery_action = self.recovery_step(possible_next_coords)
         # print("Took recovery", recovery_action)
 
         return recovery_action
 
-    def task_policy(self):
+    def task_policy(self, possible_next_coords):
         """
         policy to poll for desired action
         """
 
-        if self.trajectory is None or self.trajectory_step >= len(self.trajectory):
-            self.trajectory = self.get_new_trajectory()
-            self.trajectory_step = 0
-
-        task_action = self.trajectory[self.trajectory_step]
+        if self.goal_satisfied:
+            task_action = self.get_random_action(possible_next_coords)
+        else:
+            if self.trajectory is None or self.trajectory_step >= len(self.trajectory):
+                self.trajectory = self.get_new_trajectory()
+                self.trajectory_step = 0
+            task_action = self.trajectory[self.trajectory_step]
         return task_action
+
+    def get_random_action(self, possible_next_coords):
+        danger_sorted = sorted(possible_next_coords, key=lambda c: self.pdm[*c])
+        safer_choices = danger_sorted[:len(danger_sorted) / 2]
+        return random.choice(safer_choices)
 
     def recovery_step(self, possible_next_coords) -> tuple:
         """
@@ -139,7 +152,7 @@ class Agent:
         return self.possible_steps(self.pos)
 
     def update_current_danger(self):
-        self.update_zone_with_danger(self.pos)
+        self.update_zone_with_danger(self.pos, initial_scale_factor=1.5)
         # self.update_path_with_danger()
 
     def update_path_with_danger(self):
@@ -183,7 +196,7 @@ class Agent:
     def update_others_danger(self):
         communicable_poses = self.get_available_others()
         for other_pos in communicable_poses:
-            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.85)
+            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.75)
 
     def reset_for_failure(self, coords):
         self.update_current_danger()
@@ -194,7 +207,7 @@ class Agent:
         # raise NotImplementedError
         self.update_position(coords)
         # self.update_pdm(self.pos, False)
-        self.update_zone_with_danger(coords=self.pos, initial_scale_factor=0.15, obstacle=False)
+        self.update_zone_with_danger(coords=self.pos, initial_scale_factor=0.25, obstacle=False)
 
     def update_position(self, coords):
         self.pos = coords
