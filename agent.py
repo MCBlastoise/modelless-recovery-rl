@@ -28,7 +28,7 @@ class Agent:
         self.other_agents = []
 
     def inform_goal_completed(self):
-        print("goal reached")
+        # print("goal reached")
         self.goal_satisfied = True
 
     def share_other_agents(self, other_agents):
@@ -41,16 +41,16 @@ class Agent:
         distance = ((y2 - y1) ** 2 + (x2 - x1) ** 2) ** (1/2)
 
         if distance <= self.COMMUNICATION_THRESHOLD:
-            return (other_agent.pos, other_agent.pdm)
+            return (other_agent.pos, other_agent.pdm, other_agent.explored)
         else:
             return None
     
     def get_available_others(self):
         other_agents_data = []
         for other_agent in self.other_agents:
-            pos = self.other_agent_access(other_agent)
-            if pos is not None:
-                other_agents_data.append(pos)
+            data = self.other_agent_access(other_agent)
+            if data is not None:
+                other_agents_data.append(data)
         return other_agents_data
 
     def get_new_trajectory(self):
@@ -195,8 +195,9 @@ class Agent:
 
     def update_others_danger(self):
         communicable_poses = self.get_available_others()
-        for other_pos, other_pdm in communicable_poses:
+        for other_pos, other_pdm, other_explored in communicable_poses:
             self.incorporate_other_pdm(other_pdm)
+            self.incorporate_other_explored(other_explored)
             self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.75)
 
     def reset_for_failure(self, coords):
@@ -259,3 +260,11 @@ class Agent:
                 my_prob, other_prob = self.pdm[row, col], other_pdm[row, col]
                 average_prob = (my_prob + other_prob) / 2
                 self.pdm[row, col] = average_prob
+    
+    def incorporate_other_explored(self, other_explored):
+        ROWS, COLS = self.explored.shape
+        for row in range(ROWS):
+            for col in range(COLS):
+                my_explored_val, other_explored_val = self.explored[row, col], other_explored[row, col]
+                cohesive_explored = max(my_explored_val, other_explored_val)
+                self.explored[row, col] = cohesive_explored
