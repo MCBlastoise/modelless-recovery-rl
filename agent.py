@@ -88,10 +88,10 @@ class Agent:
         """
 
         possible_next_coords = self.get_next_coordinates()
+        task_action = self.task_policy(possible_next_coords)
 
         # Decide if safe
-        if self.is_safe(self.pos):
-            task_action = self.task_policy(possible_next_coords)
+        if self.is_safe(task_action):
             self.trajectory_step = self.trajectory_step + 1 if self.trajectory_step is not None else self.trajectory_step
             return task_action
 
