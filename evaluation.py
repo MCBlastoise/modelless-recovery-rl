@@ -10,10 +10,10 @@ occupancy_data[20:25, :10] = 1
 occupancy_data[5:10, 20:] = 1
 # occupancy_data[:10, 5:15] = 1
 # occupancy_data[20:, 15:25] = 1
-environment = Environment(occupancy_data, 1, 30, 30, 0.9)
+environment = Environment("manyobstacles.png", 1, 30, 30, 0.75)
 anim = RobotVisualization(environment)
 ratios = []
-for i in range(10000):
+for i in range(5000):
 
     # print("Before environment update")
     environment.update_pos()

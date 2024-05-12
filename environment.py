@@ -57,7 +57,7 @@ class Environment:
             else:
                 pixels[i] = 1
 
-        pixels = pixels.reshape((100,100))
+        pixels = pixels.reshape((self.width,self.height))
         return pixels
         
 
@@ -101,11 +101,7 @@ class Environment:
             agent.inform_goal_completed()
         
     def explored_enough(self, cohesive_map):
+        map_no_obstacles_size = np.count_nonzero(self.occupancy_grid == 0)
         explored_frac = np.sum(cohesive_map) / cohesive_map.size
         print(explored_frac)
         return explored_frac >= self.completion_percentage
-
-    # def fully_explored(self, agent):
-    #     xor_result = np.bitwise_xor(agent.explored.astype(int), self.occupancy_grid.astype(int))
-    #     visited = np.count_nonzero(xor_result)
-    #     return visited > self.completion_percentage*self.occupancy_grid.size 

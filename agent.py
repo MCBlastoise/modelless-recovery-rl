@@ -108,9 +108,11 @@ class Agent:
         return task_action
 
     def get_random_action(self, possible_next_coords):
-        danger_sorted = sorted(possible_next_coords, key=lambda c: self.pdm[*c])
-        safer_choices = danger_sorted[:len(danger_sorted) // 2]
-        return random.choice(safer_choices)
+        safe_actions = []
+        for coord in possible_next_coords:
+            if self.is_safe(coord):
+                safe_actions.append(coord)
+        return random.choice(safe_actions)
 
     def recovery_step(self, possible_next_coords) -> tuple:
         """
@@ -224,6 +226,8 @@ class Agent:
         self.explored[*coords] = 1
 
     def update_pdm(self, coords: tuple[int, int], obstacle: bool, scale_factor=1):
+        if self.pdm[*coords] >= self.EPSILON:
+            return
         delta = self.PDM_POS_DELTA if obstacle else self.PDM_NEG_DELTA
         scaled_delta = delta * scale_factor
         new_pdm = self.pdm[*coords] + scaled_delta
