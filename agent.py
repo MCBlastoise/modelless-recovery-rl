@@ -140,7 +140,7 @@ class Agent:
 
     def update_current_danger(self):
         self.update_zone_with_danger(self.pos)
-        self.update_path_with_danger()
+        # self.update_path_with_danger()
 
     def update_path_with_danger(self):
         valid_coords = [ (ix, coord) for ix, coord in enumerate(self.previous_positions, start=1) if coord is not None ]
@@ -149,7 +149,7 @@ class Agent:
             scale_factor = 1 / (ix ** 2)
             self.update_pdm(coord, obstacle=True, scale_factor=scale_factor)
     
-    def update_zone_with_danger(self, coords, initial_scale_factor=1):
+    def update_zone_with_danger(self, coords, initial_scale_factor=1, obstacle=True):
         ROWS, COLS = self.pdm.shape
         r, c = coords
 
@@ -164,7 +164,7 @@ class Agent:
             (x1, y1), (x2, y2) = self.pos, danger_coord
             distance = ((y2 - y1) ** 2 + (x2 - x1) ** 2) ** (1/2)
             scale_factor = initial_scale_factor * (1 / (distance ** 2) if distance != 0 else 1)
-            self.update_pdm(danger_coord, obstacle=True, scale_factor=scale_factor)
+            self.update_pdm(danger_coord, obstacle=obstacle, scale_factor=scale_factor)
 
     def invalidate_trajectory(self):
         self.trajectory = None
@@ -177,12 +177,13 @@ class Agent:
             self.reset_for_failure(coords)
         
         self.update_others_danger()
+        # self.get_fraction_explored()
         # print(communicable_poses)
 
     def update_others_danger(self):
         communicable_poses = self.get_available_others()
         for other_pos in communicable_poses:
-            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.7)
+            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.85)
 
     def reset_for_failure(self, coords):
         self.update_current_danger()
@@ -192,7 +193,8 @@ class Agent:
     def successful_move(self, coords):
         # raise NotImplementedError
         self.update_position(coords)
-        self.update_pdm(self.pos, False)
+        # self.update_pdm(self.pos, False)
+        self.update_zone_with_danger(coords=self.pos, initial_scale_factor=0.15, obstacle=False)
 
     def update_position(self, coords):
         self.pos = coords
@@ -225,7 +227,13 @@ class Agent:
         if safety < self.EPSILON:
             return True
         else:
+            scaled_safety = safety ** (1 / 2)
             UNSAFE_CAP = 0.95
-            capped_safety = min(safety, UNSAFE_CAP)
+            capped_safety = min(scaled_safety, UNSAFE_CAP)
             random_val = random.random()
             return capped_safety < random_val
+    
+    def get_fraction_explored(self):
+        frac = np.sum(self.explored) / self.explored.size
+        print(self, frac)
+        return frac
