@@ -4,12 +4,23 @@ from enum import Enum
 
 class Agent:
     EPSILON = 0.7
-    PDM_POS_DELTA = 0.3
-    PDM_NEG_DELTA = -0.15
-    PATH_DANGER_WINDOW = 4
-    DANGER_RADIUS = 2
 
     COMMUNICATION_THRESHOLD = 9
+    DANGER_RADIUS = 2
+
+    PDM_UNSAFE_DELTA = 0.3
+    PDM_SAFE_DELTA = -0.1
+    PATH_DANGER_WINDOW = 4
+    
+    CRASH_SCALE_FACTOR = 1.5
+    DYNAMIC_SCALE_FACTOR = 0.6
+
+    SUCCESSFUL_MOVE_FACTOR = 0.25
+
+    NEIGHBOR_PDM_FRAC = 0.25
+
+    UNSAFE_CAP = 0.9
+    
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
         self.pdm = np.copy(initial_pdm) # numpy array
@@ -151,10 +162,6 @@ class Agent:
     def get_next_coordinates(self):
         return self.possible_steps(self.pos)
 
-    def update_current_danger(self):
-        self.update_zone_with_danger(self.pos, initial_scale_factor=1.5)
-        # self.update_path_with_danger()
-
     def update_path_with_danger(self):
         valid_coords = [ (ix, coord) for ix, coord in enumerate(self.previous_positions, start=1) if coord is not None ]
         for ix, coord in valid_coords:
@@ -162,7 +169,7 @@ class Agent:
             scale_factor = 1 / (ix ** 2)
             self.update_pdm(coord, obstacle=True, scale_factor=scale_factor)
     
-    def update_zone_with_danger(self, coords, initial_scale_factor=1, obstacle=True):
+    def update_zone(self, coords, initial_scale_factor=1, obstacle=True):
         ROWS, COLS = self.pdm.shape
         r, c = coords
 
@@ -198,10 +205,10 @@ class Agent:
         for other_pos, other_pdm, other_explored in communicable_poses:
             self.incorporate_other_pdm(other_pdm)
             self.incorporate_other_explored(other_explored)
-            self.update_zone_with_danger(coords=other_pos, initial_scale_factor=0.6)
+            self.update_zone(coords=other_pos, initial_scale_factor=self.DYNAMIC_SCALE_FACTOR)
 
     def reset_for_failure(self, coords):
-        self.update_current_danger()
+        self.update_zone(self.pos, initial_scale_factor=self.CRASH_SCALE_FACTOR)
         self.trajectory, self.trajectory_step = None, None
         self.update_position(coords)
 
@@ -209,7 +216,7 @@ class Agent:
         # raise NotImplementedError
         self.update_position(coords)
         # self.update_pdm(self.pos, False)
-        self.update_zone_with_danger(coords=self.pos, initial_scale_factor=0.25, obstacle=False)
+        self.update_zone(coords=self.pos, initial_scale_factor=self.SUCCESSFUL_MOVE_FACTOR, obstacle=False)
 
     def update_position(self, coords):
         self.pos = coords
@@ -224,7 +231,7 @@ class Agent:
         self.explored[*coords] = 1
 
     def update_pdm(self, coords: tuple[int, int], obstacle: bool, scale_factor=1):
-        delta = self.PDM_POS_DELTA if obstacle else self.PDM_NEG_DELTA
+        delta = self.PDM_UNSAFE_DELTA if obstacle else self.PDM_SAFE_DELTA
         scaled_delta = delta * scale_factor
         new_pdm = self.pdm[*coords] + scaled_delta
         clipped_pdm = max(min(new_pdm, 1.0), 0.0)
@@ -243,8 +250,7 @@ class Agent:
             return True
         else:
             scaled_safety = safety ** (1 / 2)
-            UNSAFE_CAP = 0.95
-            capped_safety = min(scaled_safety, UNSAFE_CAP)
+            capped_safety = min(scaled_safety, self.UNSAFE_CAP)
             random_val = random.random()
             return capped_safety < random_val
     
@@ -252,9 +258,8 @@ class Agent:
         ROWS, COLS = self.pdm.shape
         for row in range(ROWS):
             for col in range(COLS):
-                INCORPORATION_FRACTION = 0.25
                 my_prob, other_prob = self.pdm[row, col], other_pdm[row, col]
-                new_prob = other_prob * INCORPORATION_FRACTION + my_prob * (1 - INCORPORATION_FRACTION)
+                new_prob = other_prob * self.NEIGHBOR_PDM_FRAC + my_prob * (1 - self.NEIGHBOR_PDM_FRAC)
                 self.pdm[row, col] = new_prob
     
     def incorporate_other_explored(self, other_explored):
