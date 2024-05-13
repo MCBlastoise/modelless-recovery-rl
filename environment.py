@@ -74,18 +74,21 @@ class Environment:
         for ix, (agent, action) in enumerate(zip(self.agents, agent_actions)):
             # action = agent.get_next_action()
 
-            # is_collision = False
-            # for jx, other_action in enumerate(agent_actions):
-            #     if ix == jx:
-            #         continue
-            #     if action == other_action:
-            #         is_collision = True
+            is_collision = False
+            for jx, other_action in enumerate(agent_actions):
+                if ix == jx:
+                    continue
+                if action == other_action:
+                    is_collision = True
 
             if self.is_occupied(action): # tried to do an action that results in constraint violation
                 self.fail += 1
                 print("Agent made a mistake, resetting to random position")
                 agent.take_step(coords=self.get_random_position(), success=False)
                 # agent.reset_for_failure()
+            elif is_collision:
+                self.fail += 1
+                agent.take_step(coords=self.get_random_position(), success=True, neutral=True)
             else: # all good all safe
                 agent.take_step(coords=action, success=True)
                 # agent.successful_move(action)
@@ -98,10 +101,11 @@ class Environment:
             return
         
         for agent in self.agents:
+            print("goal completed")
             agent.inform_goal_completed()
         
     def explored_enough(self, cohesive_map):
         map_no_obstacles_size = np.count_nonzero(self.occupancy_grid == 0)
-        explored_frac = np.sum(cohesive_map) / cohesive_map.size
-        print(explored_frac)
+        explored_frac = np.sum(cohesive_map) / map_no_obstacles_size
+        # print(explored_frac)
         return explored_frac >= self.completion_percentage

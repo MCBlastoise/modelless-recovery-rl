@@ -3,23 +3,30 @@ import random
 from enum import Enum
 
 class Agent:
-    EPSILON = 0.7
+    EPSILON = 0.6
 
-    COMMUNICATION_THRESHOLD = 9
-    DANGER_RADIUS = 2
+    COMMUNICATION_THRESHOLD = 8
 
-    PDM_UNSAFE_DELTA = 0.3
-    PDM_SAFE_DELTA = -0.1
+    OBSTACLE_DANGER_RADIUS = 4
+    # DYNAMIC_DANGER_RADIUS = 2
+    SAFE_RADIUS = 2
+
+    DYNAMIC_DETECTION_RADIUS = 1
+
+    PDM_UNSAFE_DELTA = 0.4
+    PDM_SAFE_DELTA = -0.2
     PATH_DANGER_WINDOW = 4
     
-    CRASH_SCALE_FACTOR = 1.5
-    DYNAMIC_SCALE_FACTOR = 0.6
+    CRASH_SCALE_FACTOR = 2.0
+    DYNAMIC_SCALE_FACTOR = 0.7
 
     SUCCESSFUL_MOVE_FACTOR = 0.25
 
     NEIGHBOR_PDM_FRAC = 0.25
 
     UNSAFE_CAP = 0.9
+
+    # HOTSPOT_DURATION = 2
     
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
@@ -37,6 +44,8 @@ class Agent:
         self.previous_positions = [None] * self.PATH_DANGER_WINDOW
 
         self.other_agents = []
+
+        self.hotspots = set()
 
     def inform_goal_completed(self):
         # print("goal reached")
@@ -173,16 +182,38 @@ class Agent:
             scale_factor = 1 / (ix ** 2)
             self.update_pdm(coord, obstacle=True, scale_factor=scale_factor)
     
-    def update_zone(self, coords, initial_scale_factor=1, obstacle=True):
+    def get_coords_in_radius(self, coords, radius):
         ROWS, COLS = self.pdm.shape
         r, c = coords
 
         danger_zone_coords = []
-        for dr in range(-self.DANGER_RADIUS, self.DANGER_RADIUS + 1):
-            for dc in range(-self.DANGER_RADIUS, self.DANGER_RADIUS + 1):
+        for dr in range(-radius, radius + 1):
+            for dc in range(-radius, radius + 1):
                 danger_r, danger_c = r + dr, c + dc
                 if (0 <= danger_r < ROWS and 0 <= danger_c < COLS):
                     danger_zone_coords.append( (danger_r, danger_c) )
+        
+        return danger_zone_coords
+
+    def update_zone(self, coords, initial_scale_factor=1, obstacle=True, dynamic=False):
+        # ROWS, COLS = self.pdm.shape
+        # r, c = coords
+
+        if obstacle:
+            danger_radius = self.DYNAMIC_DANGER_RADIUS if dynamic else self.OBSTACLE_DANGER_RADIUS
+        else:
+            danger_radius = self.SAFE_RADIUS
+
+        danger_zone_coords = self.get_coords_in_radius(coords=coords, radius=danger_radius)
+
+        # print(danger_radius)
+
+        # danger_zone_coords = []
+        # for dr in range(-danger_radius, danger_radius + 1):
+        #     for dc in range(-danger_radius, danger_radius + 1):
+        #         danger_r, danger_c = r + dr, c + dc
+        #         if (0 <= danger_r < ROWS and 0 <= danger_c < COLS):
+        #             danger_zone_coords.append( (danger_r, danger_c) )
         
         for danger_coord in danger_zone_coords:
             (x1, y1), (x2, y2) = self.pos, danger_coord
@@ -194,33 +225,53 @@ class Agent:
         self.trajectory = None
         self.trajectory_step = None
 
-    def take_step(self, coords, success: bool):
+    def take_step(self, coords, success: bool, neutral=False):
         if success:
-            self.successful_move(coords)
+            self.successful_move(coords, neutral)
         else:
             self.reset_for_failure(coords)
         
+        self.update_hotspots()
         self.update_others_danger()
+        
         # self.get_fraction_explored()
         # print(communicable_poses)
+
+    def average_poses(self, coord1, coord2):
+        x1, y1 = coord1
+        x2, y2 = coord2
+        average_coord = (x1 + x2) // 2, (y1 + y2) // 2
+        return average_coord
 
     def update_others_danger(self):
         communicable_poses = self.get_available_others()
         for other_pos, other_pdm, other_explored in communicable_poses:
             self.incorporate_other_pdm(other_pdm)
             self.incorporate_other_explored(other_explored)
-            self.update_zone(coords=other_pos, initial_scale_factor=self.DYNAMIC_SCALE_FACTOR)
+
+            # dynamic_collision_spot = self.average_poses(self.pos, other_pos)
+            # self.update_zone(coords=dynamic_collision_spot, initial_scale_factor=self.DYNAMIC_SCALE_FACTOR, dynamic=True)
+            # self.hotspots.add(dynamic_collision_spot)
+
+            # self.update_zone(coords=dynamic_collision_spot, initial_scale_factor=self.DYNAMIC_SCALE_FACTOR)
+
+    def update_hotspots(self):
+        for coord in self.hotspots:
+            # print("hotspot", coord)
+            self.update_zone(coords=coord, initial_scale_factor=self.DYNAMIC_SCALE_FACTOR, obstacle=False, dynamic=True)
+        self.hotspots = set()
 
     def reset_for_failure(self, coords):
         self.update_zone(self.pos, initial_scale_factor=self.CRASH_SCALE_FACTOR)
         self.trajectory, self.trajectory_step = None, None
         self.update_position(coords)
 
-    def successful_move(self, coords):
+    def successful_move(self, coords, neutral=False):
         # raise NotImplementedError
         self.update_position(coords)
         # self.update_pdm(self.pos, False)
-        self.update_zone(coords=self.pos, initial_scale_factor=self.SUCCESSFUL_MOVE_FACTOR, obstacle=False)
+        if not neutral:
+            self.update_zone(coords=self.pos, initial_scale_factor=self.SUCCESSFUL_MOVE_FACTOR, obstacle=False)
 
     def update_position(self, coords):
         self.pos = coords
@@ -235,8 +286,8 @@ class Agent:
         self.explored[*coords] = 1
 
     def update_pdm(self, coords: tuple[int, int], obstacle: bool, scale_factor=1):
-        if self.pdm[*coords] >= self.EPSILON:
-            return
+        # if self.pdm[*coords] >= self.EPSILON:
+        #     return
         delta = self.PDM_UNSAFE_DELTA if obstacle else self.PDM_SAFE_DELTA
         scaled_delta = delta * scale_factor
         new_pdm = self.pdm[*coords] + scaled_delta
@@ -250,6 +301,16 @@ class Agent:
         """
         returns boolean describing whether the given coord is above the epsilon safety value
         """
+
+        danger_set = set()
+        communicable_poses = self.get_available_others()
+        for other_pos, _, _ in communicable_poses:
+            spot_in_between = self.average_poses(coord1=coords, coord2=other_pos)
+            danger_coords = self.get_coords_in_radius(coords=spot_in_between, radius=self.DYNAMIC_DETECTION_RADIUS)
+            danger_set |= set(danger_coords)
+
+        if coords in danger_set:
+            return False
 
         safety = self.pdm[*coords]
         if safety < self.EPSILON:
@@ -265,7 +326,11 @@ class Agent:
         for row in range(ROWS):
             for col in range(COLS):
                 my_prob, other_prob = self.pdm[row, col], other_pdm[row, col]
-                new_prob = other_prob * self.NEIGHBOR_PDM_FRAC + my_prob * (1 - self.NEIGHBOR_PDM_FRAC)
+                highest_prob = max(my_prob, other_prob)
+                if highest_prob >= self.EPSILON:
+                    new_prob = highest_prob
+                else:
+                    new_prob = my_prob
                 self.pdm[row, col] = new_prob
     
     def incorporate_other_explored(self, other_explored):
