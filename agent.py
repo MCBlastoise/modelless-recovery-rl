@@ -4,6 +4,7 @@ from enum import Enum
 
 class Agent:
     EPSILON = 0.6
+    VERY_SAFE_THRESHOLD = 0.1
 
     COMMUNICATION_THRESHOLD = 8
 
@@ -28,7 +29,7 @@ class Agent:
 
     # HOTSPOT_DURATION = 2
 
-    PREVIOUS_GOAL_WINDOW = 5
+    PREVIOUS_GOAL_WINDOW = 10
     PREVIOUS_GOAL_RADIUS = 1
     
     
@@ -255,7 +256,7 @@ class Agent:
         self.update_hotspots()
         self.update_others_danger()
 
-        print(id(self), self.previous_goals)
+        # print(id(self), self.previous_goals)
         
         # self.get_fraction_explored()
         # print(communicable_poses)
@@ -349,9 +350,11 @@ class Agent:
         for row in range(ROWS):
             for col in range(COLS):
                 my_prob, other_prob = self.pdm[row, col], other_pdm[row, col]
-                highest_prob = max(my_prob, other_prob)
+                highest_prob, lowest_prob = max(my_prob, other_prob), min(my_prob, other_prob)
                 if highest_prob >= self.EPSILON:
                     new_prob = highest_prob
+                elif lowest_prob <= self.VERY_SAFE_THRESHOLD:
+                    new_prob = lowest_prob
                 else:
                     new_prob = my_prob
                 self.pdm[row, col] = new_prob
