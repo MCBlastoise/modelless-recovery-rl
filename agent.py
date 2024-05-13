@@ -9,7 +9,7 @@ class Agent:
 
     OBSTACLE_DANGER_RADIUS = 4
     # DYNAMIC_DANGER_RADIUS = 2
-    SAFE_RADIUS = 2
+    SAFE_RADIUS = 1
 
     DYNAMIC_DETECTION_RADIUS = 1
 
@@ -27,6 +27,8 @@ class Agent:
     UNSAFE_CAP = 0.9
 
     # HOTSPOT_DURATION = 2
+
+    PREVIOUS_GOAL_WINDOW = 8
     
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
@@ -42,6 +44,8 @@ class Agent:
         self.trajectory_step = None
 
         self.previous_positions = [None] * self.PATH_DANGER_WINDOW
+
+        self.previous_goals = [None] * self.PREVIOUS_GOAL_WINDOW
 
         self.other_agents = []
 
@@ -73,6 +77,10 @@ class Agent:
                 other_agents_data.append(data)
         return other_agents_data
 
+    def add_new_goal(self, goal_coords):
+        self.previous_goals.pop(0)
+        self.previous_goals.append(goal_coords)
+
     def get_new_trajectory(self):
         queue = [ (self.pos,) ]
         seen = set()
@@ -83,7 +91,8 @@ class Agent:
             neighbors = self.possible_steps(coords)
             for neighbor in neighbors:
                 new_path = path + (neighbor,)
-                if goal_func(neighbor):
+                if goal_func(neighbor) and neighbor not in set(self.previous_goals):
+                    self.add_new_goal(neighbor)
                     final_path = list(new_path[1:])
                     # print(final_path)
                     return final_path
