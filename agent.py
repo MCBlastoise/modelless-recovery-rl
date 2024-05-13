@@ -7,7 +7,7 @@ class Agent:
 
     COMMUNICATION_THRESHOLD = 8
 
-    OBSTACLE_DANGER_RADIUS = 4
+    OBSTACLE_DANGER_RADIUS = 2
     # DYNAMIC_DANGER_RADIUS = 2
     SAFE_RADIUS = 1
 
@@ -28,7 +28,8 @@ class Agent:
 
     # HOTSPOT_DURATION = 2
 
-    PREVIOUS_GOAL_WINDOW = 8
+    PREVIOUS_GOAL_WINDOW = 5
+    PREVIOUS_GOAL_RADIUS = 1
     
     
     def __init__(self, initial_pdm, initial_coords = (0, 0)):
@@ -81,6 +82,14 @@ class Agent:
         self.previous_goals.pop(0)
         self.previous_goals.append(goal_coords)
 
+    def close_to_previous_goals(self, coords):
+        valid_prev_goals = [ coord for coord in self.previous_goals if coord is not None ]
+        danger_set = set()
+        for prev_goal in valid_prev_goals:
+            danger_coords = self.get_coords_in_radius(prev_goal, radius=self.PREVIOUS_GOAL_RADIUS)
+            danger_set |= set(danger_coords)
+        return coords in danger_set
+
     def get_new_trajectory(self):
         queue = [ (self.pos,) ]
         seen = set()
@@ -91,8 +100,7 @@ class Agent:
             neighbors = self.possible_steps(coords)
             for neighbor in neighbors:
                 new_path = path + (neighbor,)
-                if goal_func(neighbor) and neighbor not in set(self.previous_goals):
-                    self.add_new_goal(neighbor)
+                if goal_func(neighbor) and not self.close_to_previous_goals(neighbor):
                     final_path = list(new_path[1:])
                     # print(final_path)
                     return final_path
@@ -116,6 +124,10 @@ class Agent:
         # If not, invalidate trajectory and take recovery action
 
         # Failure, so invalidate trajectory
+        if self.trajectory is not None:
+            prev_goal = self.trajectory[-1]
+            self.add_new_goal(prev_goal)
+        
         self.invalidate_trajectory()
         recovery_action = self.recovery_step(possible_next_coords)
         # print("Took recovery", recovery_action)
@@ -242,6 +254,8 @@ class Agent:
         
         self.update_hotspots()
         self.update_others_danger()
+
+        print(id(self), self.previous_goals)
         
         # self.get_fraction_explored()
         # print(communicable_poses)
